@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>🍼 妈妈的每日工作小本本</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background: linear-gradient(145deg, #fdf0f6 0%, #f9e6f0 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+            padding: 16px;
+            margin: 0;
+        }
+        
+        .notebook {
+            max-width: 500px;
+            width: 100%;
+            background-color: rgba(255, 250, 245, 0.9);
+            backdrop-filter: blur(4px);
+            border-radius: 36px 36px 32px 32px;
+            box-shadow: 0 25px 40px -12px rgba(189, 130, 150, 0.35), 0 6px 12px rgba(255, 215, 230, 0.4);
+            padding: 28px 22px 32px 22px;
+            border: 2px solid #ffeef4;
+        }
+        
+        /* 日期小标签 */
+        .date-badge {
+            background-color: #ffd9e8;
+            border-radius: 60px;
+            padding: 8px 20px;
+            display: inline-block;
+            margin-bottom: 24px;
+            border: 1px solid #ffb6d1;
+            box-shadow: 0 4px 6px #ffe2f0;
+        }
+        
+        .date-badge span {
+            font-size: 20px;
+            font-weight: 500;
+            color: #a6527a;
+            letter-spacing: 0.5px;
+        }
+        
+        /* 任务区域 */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 18px 0 14px 6px;
+        }
+        
+        .section-title h2 {
+            font-size: 22px;
+            font-weight: 500;
+            color: #9e6b7e;
+            letter-spacing: -0.2px;
+        }
+        
+        .section-title img {
+            width: 28px;
+            height: 28px;
+            opacity: 0.8;
+        }
+        
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 26px;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fffafc;
+            padding: 10px 16px 10px 14px;
+            border-radius: 40px;
+            border: 1.5px solid #ffddee;
+            box-shadow: 0 6px 10px #ffe2ec;
+            transition: all 0.15s ease;
+        }
+        
+        .task-item:hover {
+            background: #ffffff;
+            border-color: #fec5d9;
+        }
+        
+        .task-item input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            accent-color: #ff9ec0;
+            border-radius: 50%;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .task-item input[type="text"] {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 18px;
+            padding: 6px 0;
+            color: #4f3b44;
+            font-weight: 450;
+            outline: none;
+            border-bottom: 1px dashed #ffc1d4;
+        }
+        
+        .task-item input[type="text"]:focus {
+            border-bottom: 2px solid #ff96bb;
+        }
+        
+        /* 已完成任务效果 */
+        .task-item.completed input[type="text"] {
+            text-decoration: line-through;
+            color: #baa5b0;
+            opacity: 0.7;
+        }
+        
+        /* 笔记框 */
+        .note-area {
+            margin: 24px 0 18px;
+        }
+        
+        .note-area textarea {
+            width: 100%;
+            border: 2px solid #ffd0e0;
+            border-radius: 30px;
+            padding: 22px 18px;
+            font-size: 18px;
+            line-height: 1.5;
+            background: #fffefc;
+            resize: vertical;
+            min-height: 150px;
+            font-family: inherit;
+            box-shadow: inset 0 3px 10px #ffecf2, 0 5px 0 #f3bcd2;
+            color: #3e2f36;
+        }
+        
+        .note-area textarea:focus {
+            outline: none;
+            border-color: #ffa7c4;
+            box-shadow: inset 0 3px 10px #ffe2f0, 0 5px 0 #e59fbb;
+        }
+        
+        /* 按钮组 */
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin: 30px 0 10px;
+            justify-content: center;
+        }
+        
+        .btn {
+            border: none;
+            background: #ffe2ef;
+            padding: 16px 24px;
+            border-radius: 56px;
+            font-size: 20px;
+            font-weight: 520;
+            color: #7c4f64;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex: 1 1 auto;
+            min-width: 140px;
+            border: 2px solid #ffb7d1;
+            box-shadow: 0 7px 0 #da9db6;
+            cursor: pointer;
+            transition: all 0.08s linear;
+            letter-spacing: 0.7px;
+        }
+        
+        .btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 2px 0 #da9db6;
+        }
+        
+        .btn-save {
+            background: #d9c2ff;
+            border-color: #c7a8ff;
+            color: #4e3b5c;
+            box-shadow: 0 7px 0 #ab8fc9;
+        }
+        
+        .btn-history {
+            background: #ffe0b5;
+            border-color: #fdc98d;
+            color: #6f4f2c;
+            box-shadow: 0 7px 0 #dbaa6b;
+        }
+        
+        /* 历史记录面板 */
+        .history-panel {
+            background: #fff5fb;
+            border-radius: 32px;
+            margin-top: 30px;
+            padding: 20px 16px;
+            border: 2px solid #ffc7db;
+            box-shadow: inset 0 2px 8px #ffdeec;
+        }
+        
+        .history-panel h3 {
+            font-size: 22px;
+            font-weight: 500;
+            color: #8e5a72;
+            margin-bottom: 16px;
+            padding-left: 10px;
+        }
+        
+        .history-list {
+            list-style: none;
+            max-height: 220px;
+            overflow-y: auto;
+            border-radius: 28px;
+            background: #ffeef6;
+            padding: 6px 4px;
+        }
+        
+        .history-list li {
+            padding: 16px 18px;
+            border-bottom: 2px solid #ffc2d6;
+            font-size: 18px;
+            color: #5c4050;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: background 0.1s;
+            margin: 4px 0;
+        }
+        
+        .history-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .history-list li:hover {
+            background: #ffe2f2;
+        }
+        
+        .history-date {
+            font-weight: 500;
+            background: #ffd9e2;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 16px;
+        }
+        
+        .delete-history {
+            background: none;
+            border: none;
+            font-size: 26px;
+            cursor: pointer;
+            color: #c66a8e;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .delete-history:hover {
+            background: #ffb0c8;
+            color: white;
+        }
+        
+        /* 空状态 */
+        .empty-message {
+            text-align: center;
+            color: #b795aa;
+            font-size: 18px;
+            padding: 28px 10px;
+            background: #fff0f7;
+            border-radius: 40px;
+        }
+        
+        .footer-emoji {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 24px;
+            opacity: 0.8;
+            color: #c2829e;
+        }
+    </style>
+</head>
+<body>
+    <div class="notebook" id="app">
+        <!-- 日期显示 -->
+        <div class="date-badge">
+            <span>📅 <span id="todayDate"></span></span>
+        </div>
+        
+        <!-- 今日任务 -->
+        <div class="section-title">
+            <h2>🎯 今日任务</h2>
+        </div>
+        <div class="task-list" id="taskListContainer">
+            <!-- 动态生成任务项 -->
+        </div>
+        
+        <!-- 工作笔记 -->
+        <div class="section-title">
+            <h2>📝 工作笔记</h2>
+        </div>
+        <div class="note-area">
+            <textarea id="workNote" placeholder="写一写今天的进展、想法或复盘……"></textarea>
+        </div>
+        
+        <!-- 按钮区域 -->
+        <div class="button-group">
+            <button class="btn btn-save" id="saveRecordBtn">💾 保存今天</button>
+            <button class="btn btn-history" id="toggleHistoryBtn">📖 历史记录</button>
+        </div>
+        
+        <!-- 历史记录面板 (默认隐藏) -->
+        <div class="history-panel" id="historyPanel" style="display: none;">
+            <h3>📚 过往记录</h3>
+            <ul class="history-list" id="historyList">
+                <!-- 动态历史记录 -->
+            </ul>
+        </div>
+        
+        <div class="footer-emoji">
+            ✨ 妈妈今天也辛苦啦 ✨
+        </div>
+    </div>
+    
+    <script>
+        (function() {
+            // ---------- 工具函数：获取今天日期 YYYY-MM-DD ----------
+            function getTodayString() {
+                const d = new Date();
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            
+            // ---------- 数据存储 KEY ----------
+            const STORAGE_KEY = 'mom_work_notebook';
+            
+            // ---------- 默认任务模板 (可修改) ----------
+            const DEFAULT_TASKS = [
+                '处理邮件',
+                '开会沟通',
+                '写工作记录',
+                '明日计划'
+            ];
+            
+            // ---------- 全局状态 ----------
+            let allRecords = {};          // 按日期索引 { '2025-03-21': { tasks: [], note: '' } }
+            let currentDate = getTodayString();
+            let historyVisible = false;
+            
+            // ---------- 加载所有记录 from localStorage ----------
+            function loadAllRecords() {
+                try {
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    if (stored) {
+                        allRecords = JSON.parse(stored);
+                    } else {
+                        allRecords = {};
+                    }
+                } catch (e) {
+                    console.warn('读取存储失败', e);
+                    allRecords = {};
+                }
+                // 确保每天数据结构完整
+            }
+            
+            // ---------- 保存所有记录到 localStorage ----------
+            function saveAllRecords() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(allRecords));
+                } catch (e) {
+                    alert('保存失败，请稍后重试');
+                }
+            }
+            
+            // ---------- 获取某一天的记录，若没有则返回默认 ----------
+            function getOrCreateRecord(date) {
+                if (!allRecords[date]) {
+                    // 深拷贝默认任务
+                    const defaultTasks = DEFAULT_TASKS.map(text => ({ text, completed: false }));
+                    allRecords[date] = {
+                        tasks: defaultTasks,
+                        note: ''
+                    };
+                }
+                return allRecords[date];
+            }
+            
+            // ---------- 渲染今日任务列表到 DOM ----------
+            function renderToday() {
+                const todayRecord = getOrCreateRecord(currentDate);
+                
+                // 显示日期
+                document.getElementById('todayDate').innerText = currentDate;
+                
+                // 渲染任务清单
+                const taskContainer = document.getElementById('taskListContainer');
+                taskContainer.innerHTML = '';
+                
+                todayRecord.tasks.forEach((task, index) => {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.className = 'task-item' + (task.completed ? ' completed' : '');
+                    
+                    const chk = document.createElement('input');
+                    chk.type = 'checkbox';
+                    chk.checked = task.completed;
+                    chk.addEventListener('change', function(e) {
+                        task.completed = e.target.checked;
+                        if (task.completed) {
+                            taskDiv.classList.add('completed');
+                        } else {
+                            taskDiv.classList.remove('completed');
+                        }
+                        // 实时保存到内存 & 存储
+                        saveAllRecords();
+                    });
+                    
+                    const txt = document.createElement('input');
+                    txt.type = 'text';
+                    txt.value = task.text;
+                    txt.addEventListener('input', function(e) {
+                        task.text = e.target.value;
+                        // 实时保存文本更改
+                        saveAllRecords();
+                    });
+                    
+                    taskDiv.appendChild(chk);
+                    taskDiv.appendChild(txt);
+                    taskContainer.appendChild(taskDiv);
+                });
+                
+                // 渲染笔记
+                document.getElementById('workNote').value = todayRecord.note || '';
+            }
+            
+            // ---------- 保存当前界面数据到记录 ----------
+            function captureCurrentToRecord() {
+                const record = getOrCreateRecord(currentDate);
+                
+                // 捕获任务列表 (从 DOM 同步最新值，因为可能未触发 input 事件)
+                const taskItems = document.querySelectorAll('.task-item');
+                const tasks = [];
+                taskItems.forEach(item => {
+                    const chk = item.querySelector('input[type="checkbox"]');
+                    const txt = item.querySelector('input[type="text"]');
+                    if (chk && txt) {
+                        tasks.push({
+                            text: txt.value,
+                            completed: chk.checked
+                        });
+                    }
+                });
+                // 如果 DOM 任务数量正常就替换
+                if (tasks.length > 0) {
+                    record.tasks = tasks;
+                }
+                
+                // 捕获笔记
+                record.note = document.getElementById('workNote').value;
+                
+                saveAllRecords();
+            }
+            
+            // ---------- 手动保存按钮 ----------
+            document.getElementById('saveRecordBtn').addEventListener('click', function() {
+                captureCurrentToRecord();
+                alert(`✅ 已保存 ${currentDate} 的工作记录`);
+            });
+            
+            // ---------- 切换历史面板 ----------
+            document.getElementById('toggleHistoryBtn').addEventListener('click', function() {
+                historyVisible = !historyVisible;
+                const panel = document.getElementById('historyPanel');
+                if (historyVisible) {
+                    panel.style.display = 'block';
+                    renderHistoryList();
+                } else {
+                    panel.style.display = 'none';
+                }
+            });
+            
+            // ---------- 渲染历史记录列表 ----------
+            function renderHistoryList() {
+                const historyListEl = document.getElementById('historyList');
+                historyListEl.innerHTML = '';
+                
+                const sortedDates = Object.keys(allRecords).sort().reverse(); // 最新的在前
+                
+                if (sortedDates.length === 0) {
+                    historyListEl.innerHTML = '<div class="empty-message">📭 还没有任何历史记录</div>';
+                    return;
+                }
+                
+                sortedDates.forEach(date => {
+                    const li = document.createElement('li');
+                    
+                    const dateSpan = document.createElement('span');
+                    dateSpan.className = 'history-date';
+                    dateSpan.innerText = date;
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-history';
+                    deleteBtn.innerText = '🗑️';
+                    deleteBtn.title = '删除这条记录';
+                    
+                    // 点击日期加载该天记录
+                    dateSpan.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        // 先保存当前修改
+                        captureCurrentToRecord();
+                        // 切换到选中日期
+                        currentDate = date;
+                        // 刷新今日视图
+                        renderToday();
+                        // 可选：自动关闭历史面板
+                        historyVisible = false;
+                        document.getElementById('historyPanel').style.display = 'none';
+                    });
+                    
+                    // 删除记录
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (confirm(`确定要删除 ${date} 的记录吗？`)) {
+                            delete allRecords[date];
+                            saveAllRecords();
+                            // 如果删除的是当前显示的日期，重置当前日期到今天
+                            if (currentDate === date) {
+                                currentDate = getTodayString();
+                            }
+                            renderToday();
+                            renderHistoryList(); // 刷新历史列表
+                        }
+                    });
+                    
+                    li.appendChild(dateSpan);
+                    li.appendChild(deleteBtn);
+                    historyListEl.appendChild(li);
+                });
+            }
+            
+            // ---------- 初始化应用 ----------
+            function initApp() {
+                loadAllRecords();
+                
+                // 确保今天一定有记录（便于显示）
+                getOrCreateRecord(currentDate);
+                
+                renderToday();
+                
+                // 保存任何修改到 local 的防抖可以省略，因为 input 和 checkbox 已实时存
+                // 但为了保险，在页面隐藏/卸载前存一次
+                window.addEventListener('beforeunload', function() {
+                    captureCurrentToRecord();
+                });
+            }
+            
+            initApp();
+        })();
+    </script>
+</body>
+</html>
