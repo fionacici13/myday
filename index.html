@@ -3,20 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>我的工作本本 · 登录</title>
+    <title>我的工作本本 · 日历网格版</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background: linear-gradient(145deg, #fdf0f6 0%, #f9e6f0 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            font-family: 'Segoe UI', 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+            align-items: flex-start;
+            font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+            font-size: 16px; /* 正常字体大小 */
             padding: 16px;
         }
         /* 登录卡片 */
@@ -26,367 +23,210 @@
             background-color: rgba(255, 250, 245, 0.95);
             backdrop-filter: blur(4px);
             border-radius: 48px;
-            box-shadow: 0 25px 40px -12px rgba(189, 130, 150, 0.35), 0 6px 12px rgba(255, 215, 230, 0.4);
+            box-shadow: 0 25px 40px -12px rgba(189,130,150,0.35);
             padding: 40px 30px;
             border: 2px solid #ffeef4;
             text-align: center;
         }
-        .login-container h1 {
-            font-size: 36px;
-            color: #a6527a;
-            margin-bottom: 12px;
-        }
-        .login-container p {
-            color: #b5809b;
-            margin-bottom: 32px;
-            font-size: 18px;
-        }
+        .login-container h1 { font-size: 32px; color: #a6527a; margin-bottom: 8px; }
+        .login-container p { color: #b5809b; margin-bottom: 24px; }
         .input-group {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             text-align: left;
         }
         .input-group label {
-            display: block;
-            font-size: 18px;
-            color: #9e6b7e;
-            margin-bottom: 8px;
-            padding-left: 12px;
+            display: block; font-size: 16px; color: #9e6b7e;
+            margin-bottom: 4px; padding-left: 12px;
         }
         .input-group input {
-            width: 100%;
-            padding: 16px 22px;
-            font-size: 18px;
-            border: 2px solid #ffbed6;
-            border-radius: 50px;
-            background: white;
+            width: 100%; padding: 12px 20px; font-size: 16px;
+            border: 2px solid #ffbed6; border-radius: 40px;
             outline: none;
-            transition: 0.1s;
-        }
-        .input-group input:focus {
-            border-color: #ff8cb0;
-            box-shadow: 0 0 0 4px #ffe2f0;
         }
         .login-btn {
-            background: #d9c2ff;
-            border: 2px solid #c7a8ff;
-            color: #4e3b5c;
-            padding: 16px 32px;
-            border-radius: 60px;
-            font-size: 22px;
-            font-weight: 600;
-            box-shadow: 0 7px 0 #ab8fc9;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 16px;
+            background: #d9c2ff; border: 2px solid #c7a8ff; color: #4e3b5c;
+            padding: 14px 0; border-radius: 60px; font-size: 20px;
+            font-weight: 600; box-shadow: 0 5px 0 #ab8fc9;
+            cursor: pointer; width: 100%; margin-top: 8px;
             transition: 0.08s;
         }
-        .login-btn:active {
-            transform: translateY(5px);
-            box-shadow: 0 2px 0 #ab8fc9;
-        }
-        .error-message {
-            color: #c64a6b;
-            margin-top: 20px;
-            font-size: 18px;
-            min-height: 32px;
-        }
-        /* 主应用容器（初始隐藏） */
-        #mainApp {
-            display: none;
-            width: 100%;
-        }
-        /* 原工作记录工具的样式直接复用，无需改动 */
-        /* 以下为原工作记录工具的样式（已整合，无需额外修改） */
+        .login-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #ab8fc9; }
+        .error-message { color: #c64a6b; margin-top: 16px; min-height: 24px; }
+
+        /* 主应用容器 */
+        #mainApp { display: none; width: 100%; }
         .container {
-            max-width: 1200px;
-            width: 100%;
+            max-width: 1400px; width: 100%; margin: 0 auto;
             background-color: rgba(255, 250, 245, 0.9);
             backdrop-filter: blur(4px);
-            border-radius: 36px 36px 32px 32px;
-            box-shadow: 0 25px 40px -12px rgba(189, 130, 150, 0.35), 0 6px 12px rgba(255, 215, 230, 0.4);
-            padding: 28px 22px 32px 22px;
+            border-radius: 36px;
+            padding: 24px 20px;
             border: 2px solid #ffeef4;
         }
+        /* 工具栏 */
         .toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 28px;
-            background: #fff0f8;
-            padding: 16px 20px;
-            border-radius: 60px;
-            border: 1px solid #ffdae9;
+            display: flex; flex-wrap: wrap; gap: 10px;
+            align-items: center; margin-bottom: 20px;
+            background: #fff0f8; padding: 12px 20px;
+            border-radius: 60px; border: 1px solid #ffdae9;
         }
         .view-switch {
-            display: flex;
-            gap: 8px;
-            background: #ffeef4;
-            padding: 4px;
-            border-radius: 40px;
-            border: 1px solid #ffc9dd;
+            display: flex; gap: 6px; background: #ffeef4;
+            padding: 4px; border-radius: 40px;
         }
         .view-btn {
-            border: none;
-            background: transparent;
-            padding: 10px 22px;
-            border-radius: 40px;
-            font-size: 18px;
-            font-weight: 500;
-            color: #ac708b;
-            cursor: pointer;
-            transition: all 0.1s;
+            border: none; background: transparent; padding: 8px 18px;
+            border-radius: 40px; font-size: 16px; font-weight: 500;
+            color: #ac708b; cursor: pointer;
         }
-        .view-btn.active {
-            background: #ffb6d9;
-            color: white;
-            box-shadow: 0 4px 8px #fba9cd;
-        }
-        .date-picker {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: white;
-            padding: 6px 16px;
-            border-radius: 40px;
-            border: 1px solid #ffbed6;
-        }
-        .date-picker input, .date-picker select {
-            border: none;
-            background: transparent;
-            font-size: 18px;
-            padding: 8px 4px;
-            color: #6d4b5b;
-            outline: none;
-            border-radius: 20px;
-        }
+        .view-btn.active { background: #ffb6d9; color: white; box-shadow: 0 2px 6px #fba9cd; }
+        .date-picker { display: flex; align-items: center; gap: 6px; background: white; padding: 4px 14px; border-radius: 40px; border: 1px solid #ffbed6; }
+        .date-picker input, .date-picker select { border: none; background: transparent; font-size: 15px; padding: 6px 2px; outline: none; }
         .btn-export {
-            background: #d9c2ff;
-            border: 2px solid #c7a8ff;
-            color: #4e3b5c;
-            padding: 10px 24px;
-            border-radius: 40px;
-            font-size: 18px;
-            font-weight: 500;
-            box-shadow: 0 5px 0 #ab8fc9;
-            cursor: pointer;
-            margin-left: auto;
-            transition: 0.08s;
+            background: #d9c2ff; border: 2px solid #c7a8ff; color: #4e3b5c;
+            padding: 8px 20px; border-radius: 40px; font-size: 16px;
+            font-weight: 500; box-shadow: 0 4px 0 #ab8fc9;
+            cursor: pointer; margin-left: auto;
         }
-        .btn-export:active {
-            transform: translateY(4px);
-            box-shadow: 0 1px 0 #ab8fc9;
-        }
-        .view-container {
-            margin-top: 20px;
-        }
-        .day-view {
-            background: #fff9fd;
-            border-radius: 48px;
-            padding: 28px;
-            border: 2px solid #ffd0e2;
-        }
-        .day-header {
-            font-size: 32px;
-            font-weight: 500;
-            color: #a6527a;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .task-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
+        .btn-export:active { transform: translateY(3px); box-shadow: 0 1px 0 #ab8fc9; }
+
+        /* 视图容器 */
+        .view-container { margin-top: 16px; }
+
+        /* ---------- 日视图 (保持任务列表) ---------- */
+        .day-view { background: #fff9fd; border-radius: 40px; padding: 24px; border: 2px solid #ffd0e2; }
+        .day-header { font-size: 24px; font-weight: 500; color: #a6527a; margin-bottom: 20px; }
+        .task-list { display: flex; flex-direction: column; gap: 12px; }
         .task-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #ffffff;
-            padding: 14px 20px;
-            border-radius: 50px;
-            border: 1.5px solid #ffc9e0;
-            box-shadow: 0 4px 8px #ffe2f0;
+            display: flex; align-items: center; gap: 12px;
+            background: white; padding: 12px 18px;
+            border-radius: 50px; border: 1.5px solid #ffc9e0;
             flex-wrap: wrap;
         }
+        /* 优先级复选框 */
+        .priority-check {
+            appearance: none; -webkit-appearance: none;
+            width: 24px; height: 24px; border-radius: 6px;
+            border: 2px solid #ccc; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+            background-color: white; transition: 0.1s;
+        }
+        .priority-check:checked { background-color: currentColor; border-color: currentColor; }
+        .priority-check:checked::after { content: "✓"; color: white; font-size: 16px; }
+        .priority-check[data-priority="red"] { color: #f44336; border-color: #f44336; }
+        .priority-check[data-priority="orange"] { color: #ff9800; border-color: #ff9800; }
+        .priority-check[data-priority="green"] { color: #4caf50; border-color: #4caf50; }
+
         .task-text {
-            flex: 2 1 250px;
-            border: none;
-            background: #fff2f8;
-            padding: 12px 18px;
-            border-radius: 40px;
-            font-size: 18px;
-            color: #4f3b44;
-            outline: none;
-            border: 1px solid #ffb8d4;
+            flex: 2 1 250px; border: none; background: #fff2f8;
+            padding: 8px 16px; border-radius: 40px; font-size: 15px;
+            border: 1px solid #ffb8d4; outline: none;
         }
-        .task-file {
-            flex: 1 1 200px;
-            border: none;
-            background: #fff2f8;
-            padding: 12px 18px;
-            border-radius: 40px;
-            font-size: 16px;
-            color: #4f3b44;
-            outline: none;
-            border: 1px solid #ffb8d4;
+        .task-text.completed { text-decoration: line-through; color: #a88b9a; }
+
+        /* 文件图标按钮 */
+        .file-icon-btn {
+            background: #e8f0fe; border: none; border-radius: 50%;
+            width: 40px; height: 40px; font-size: 20px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border: 1px solid #b8cef0; color: #4e6b9e;
         }
-        .file-link {
-            flex: 1 1 200px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #e8f0fe;
-            padding: 8px 16px;
-            border-radius: 40px;
-            font-size: 15px;
-            word-break: break-all;
-        }
-        .file-link a {
-            color: #9e4a76;
-            text-decoration: none;
-            border-bottom: 1px dashed #c28fb0;
-        }
+        .file-name { font-size: 14px; color: #7a5d6e; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .delete-task {
-            background: none;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            color: #cc7fa0;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: none; border: none; font-size: 24px;
+            cursor: pointer; color: #cc7fa0; width: 40px; height: 40px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
         }
-        .delete-task:hover {
-            background: #ffc2d9;
-            color: white;
-        }
+        .delete-task:hover { background: #ffc2d9; color: white; }
         .add-task-btn {
-            background: #ffe2f0;
-            border: 2px dashed #ffa5c4;
-            padding: 16px;
-            border-radius: 60px;
-            font-size: 22px;
-            font-weight: 500;
-            color: #b35f86;
-            width: 100%;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: 0.1s;
+            background: #ffe2f0; border: 2px dashed #ffa5c4;
+            padding: 12px; border-radius: 60px; font-size: 18px;
+            color: #b35f86; width: 100%; cursor: pointer; margin-top: 16px;
         }
-        .add-task-btn:hover {
-            background: #ffd3e8;
+
+        /* ---------- 月视图：日历网格 ---------- */
+        .month-view { background: #fff9fd; border-radius: 40px; padding: 24px; border: 2px solid #ffd0e2; }
+        .month-header { font-size: 24px; font-weight: 500; color: #a6527a; margin-bottom: 16px; }
+        .calendar-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr);
+            gap: 6px; background: #ffeef4; padding: 12px; border-radius: 32px;
         }
-        .month-view {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+        .weekday {
+            text-align: center; font-weight: 600; color: #a6527a;
+            padding: 8px 0; font-size: 15px;
         }
-        .month-header {
-            font-size: 28px;
-            font-weight: 500;
-            color: #a6527a;
-            margin: 10px 0;
+        .calendar-cell {
+            background: white; border-radius: 18px; padding: 8px 4px;
+            min-height: 70px; border: 1px solid #ffc9e0;
+            display: flex; flex-direction: column; align-items: center;
+            cursor: pointer; transition: 0.1s;
         }
-        .month-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
+        .calendar-cell:hover { background: #fff0fa; transform: scale(1.02); }
+        .cell-date { font-weight: 600; color: #9e6b7e; margin-bottom: 4px; }
+        .task-dots {
+            display: flex; flex-wrap: wrap; gap: 4px; justify-content: center;
         }
-        .month-day-card {
-            background: #fff9fd;
-            border-radius: 40px;
-            padding: 20px;
-            border: 2px solid #ffd0e2;
+        .task-dot {
+            width: 10px; height: 10px; border-radius: 50%;
         }
-        .day-title {
-            font-size: 24px;
-            font-weight: 500;
-            color: #b25d83;
-            margin-bottom: 16px;
-            border-bottom: 2px solid #ffc2da;
-            padding-bottom: 8px;
-        }
-        .year-view {
-            display: flex;
-            flex-direction: column;
-            gap: 32px;
-        }
+        .task-dot.red { background: #f44336; }
+        .task-dot.orange { background: #ff9800; }
+        .task-dot.green { background: #4caf50; }
+
+        /* ---------- 年视图：月份网格（每个月份内嵌小日历） ---------- */
+        .year-view { display: flex; flex-direction: column; gap: 24px; }
         .year-month-block {
-            background: #fff9fd;
-            border-radius: 48px;
-            padding: 24px;
+            background: #fff9fd; border-radius: 40px; padding: 20px;
             border: 2px solid #ffd0e2;
         }
-        .year-month-title {
-            font-size: 28px;
-            font-weight: 500;
-            color: #a6527a;
-            margin-bottom: 20px;
+        .year-month-title { font-size: 22px; font-weight: 500; color: #a6527a; margin-bottom: 12px; }
+        .month-mini-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr);
+            gap: 2px; background: #ffeef4; padding: 8px; border-radius: 24px;
         }
+        .mini-weekday {
+            text-align: center; font-size: 12px; font-weight: 600;
+            color: #a6527a; padding: 4px 0;
+        }
+        .mini-cell {
+            background: white; border-radius: 12px; padding: 6px 2px;
+            border: 1px solid #ffd0e2; display: flex;
+            flex-direction: column; align-items: center;
+            cursor: pointer; font-size: 12px;
+        }
+        .mini-cell .date-num { font-weight: 600; color: #7a4d63; }
+        .mini-dots { display: flex; gap: 2px; justify-content: center; flex-wrap: wrap; }
+        .mini-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+        }
+        .mini-dot.red { background: #f44336; }
+        .mini-dot.orange { background: #ff9800; }
+        .mini-dot.green { background: #4caf50; }
+
+        /* 导出弹窗 */
         .export-dialog {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.3);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.3); display: flex;
+            justify-content: center; align-items: center;
             z-index: 100;
         }
         .export-card {
-            background: #fff5fb;
-            border-radius: 60px;
-            padding: 32px;
-            max-width: 450px;
-            width: 90%;
-            border: 3px solid #ffbad2;
-            box-shadow: 0 20px 30px #d9a6bb;
+            background: #fff5fb; border-radius: 60px; padding: 32px;
+            max-width: 400px; width: 90%; border: 3px solid #ffbad2;
         }
-        .export-card h3 {
-            font-size: 28px;
-            color: #a6527a;
-            margin-bottom: 24px;
-        }
+        .export-card h3 { font-size: 24px; color: #a6527a; margin-bottom: 20px; }
         .export-card input {
-            width: 100%;
-            padding: 16px 20px;
-            font-size: 18px;
-            border: 2px solid #ffbed6;
-            border-radius: 50px;
-            margin-bottom: 20px;
-            background: white;
+            width: 100%; padding: 12px 20px; font-size: 16px;
+            border: 2px solid #ffbed6; border-radius: 50px; margin-bottom: 16px;
         }
-        .export-actions {
-            display: flex;
-            gap: 16px;
-            justify-content: flex-end;
-        }
+        .export-actions { display: flex; gap: 12px; justify-content: flex-end; }
         .export-actions button {
-            border: none;
-            padding: 14px 28px;
-            border-radius: 40px;
-            font-size: 20px;
-            font-weight: 500;
-            cursor: pointer;
+            border: none; padding: 10px 22px; border-radius: 40px;
+            font-size: 18px; font-weight: 500; cursor: pointer;
         }
-        .btn-confirm {
-            background: #d9c2ff;
-            border: 2px solid #c7a8ff;
-            color: #4e3b5c;
-        }
-        .btn-cancel {
-            background: #ffe2e2;
-            border: 2px solid #ffb0b0;
-            color: #a15c5c;
-        }
-        .hidden {
-            display: none;
-        }
+        .btn-confirm { background: #d9c2ff; border: 2px solid #c7a8ff; color: #4e3b5c; }
+        .btn-cancel { background: #ffe2e2; border: 2px solid #ffb0b0; color: #a15c5c; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -394,45 +234,33 @@
     <div id="loginPage" class="login-container">
         <h1>🔐 我的小本本</h1>
         <p>请输入用户名和密码</p>
-        <div class="input-group">
-            <label>用户名</label>
-            <input type="text" id="username" placeholder="fionacici" autocomplete="off">
-        </div>
-        <div class="input-group">
-            <label>密码</label>
-            <input type="password" id="password" placeholder="••••••">
-        </div>
+        <div class="input-group"><label>用户名</label><input type="text" id="username" value="fionacici"></div>
+        <div class="input-group"><label>密码</label><input type="password" id="password" value="123456cyl"></div>
         <button class="login-btn" id="loginBtn">登录</button>
         <div class="error-message" id="loginError"></div>
     </div>
 
-    <!-- 主应用（初始隐藏） -->
+    <!-- 主应用 -->
     <div id="mainApp">
-        <div class="container" id="app">
-            <!-- 顶部工具栏 -->
+        <div class="container">
             <div class="toolbar">
                 <div class="view-switch">
                     <button class="view-btn active" data-view="day">📅 日</button>
                     <button class="view-btn" data-view="month">📆 月</button>
                     <button class="view-btn" data-view="year">🗓️ 年</button>
                 </div>
-                <div class="date-picker" id="datePickerContainer">
-                    <!-- 动态生成日期选择控件 -->
-                </div>
+                <div class="date-picker" id="datePickerContainer"></div>
                 <button class="btn-export" id="exportBtn">📤 导出Word</button>
             </div>
-
-            <!-- 视图容器 -->
             <div class="view-container" id="viewContainer"></div>
         </div>
     </div>
 
-    <!-- 导出弹窗模板 -->
+    <!-- 导出弹窗 -->
     <div id="exportDialog" class="export-dialog hidden">
         <div class="export-card">
             <h3>📎 选择时间段</h3>
-            <input type="date" id="exportStart" value="">
-            <input type="date" id="exportEnd" value="">
+            <input type="date" id="exportStart"><input type="date" id="exportEnd">
             <div class="export-actions">
                 <button class="btn-cancel" id="cancelExport">取消</button>
                 <button class="btn-confirm" id="confirmExport">导出</button>
@@ -445,7 +273,6 @@
             // ---------- 登录验证 ----------
             const VALID_USERNAME = 'fionacici';
             const VALID_PASSWORD = '123456cyl';
-
             const loginPage = document.getElementById('loginPage');
             const mainApp = document.getElementById('mainApp');
             const loginBtn = document.getElementById('loginBtn');
@@ -454,473 +281,384 @@
             const loginError = document.getElementById('loginError');
 
             function doLogin() {
-                const username = usernameInput.value.trim();
-                const password = passwordInput.value;
-                if (username === VALID_USERNAME && password === VALID_PASSWORD) {
-                    // 登录成功：隐藏登录页，显示主应用
+                if (usernameInput.value.trim() === VALID_USERNAME && passwordInput.value === VALID_PASSWORD) {
                     loginPage.style.display = 'none';
                     mainApp.style.display = 'block';
                     loginError.textContent = '';
                 } else {
-                    loginError.textContent = '用户名或密码错误，请重新输入';
-                    passwordInput.value = ''; // 清空密码
+                    loginError.textContent = '用户名或密码错误';
+                    passwordInput.value = '';
                 }
             }
-
             loginBtn.addEventListener('click', doLogin);
-            // 允许按回车登录
-            passwordInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    doLogin();
-                }
-            });
-            usernameInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    passwordInput.focus();
-                }
-            });
+            passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); doLogin(); } });
 
-            // ---------- 以下为原工作记录工具的核心逻辑（稍作调整，移入登录后的作用域）----------
-            // 为了防止变量冲突，将原代码放在一个函数中，等登录成功后其实已经加载了，但原代码是立即执行的，
-            // 所以我们需要确保它在DOM加载后执行，且与登录逻辑共存。这里将原代码放在一个立即执行函数中，
-            // 但注意它内部可能会操作DOM，而这时主应用容器是隐藏的，但元素存在，没问题。
-            // 我们直接复制原代码，并做微小调整：原代码中有顶级变量声明，我们用let包裹避免污染。
+            // ---------- 工作记录核心 ----------
+            const STORAGE_KEY = 'mom_work_grid';
+            let records = {}; // { "2025-03-21": [{ text: "写周报", completed: false, priority: "red", file: { name: "文档.docx" } }, ...] }
+            let currentView = 'day';
+            let currentDate = new Date();
 
-            // 开始原代码
-            (function() {
-                const STORAGE_KEY = 'mom_work_plus';
-                let records = {};
-                let currentView = 'day';
-                let currentDate = new Date();
+            // 加载数据
+            function loadRecords() {
+                try {
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    if (stored) records = JSON.parse(stored); else records = {};
+                } catch (e) { records = {}; }
+                Object.keys(records).forEach(k => { if (!Array.isArray(records[k])) records[k] = []; });
+            }
+            function saveRecords() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); } catch (e) { alert('保存失败'); } }
 
-                function loadRecords() {
-                    try {
-                        const stored = localStorage.getItem(STORAGE_KEY);
-                        if (stored) records = JSON.parse(stored);
-                        else records = {};
-                    } catch (e) {
-                        console.warn('读取失败', e);
-                        records = {};
+            // 获取某天任务
+            function getTasks(dateStr) { if (!records[dateStr]) records[dateStr] = []; return records[dateStr]; }
+
+            // 添加空任务（默认优先级绿色）
+            function addEmptyTask(dateStr) {
+                const tasks = getTasks(dateStr);
+                tasks.push({ text: '', completed: false, priority: 'green', file: null });
+                saveRecords(); renderView();
+            }
+
+            // 更新任务字段
+            function updateTask(dateStr, index, updates) {
+                const tasks = getTasks(dateStr);
+                if (tasks[index]) Object.assign(tasks[index], updates);
+                saveRecords(); renderView();
+            }
+
+            // 删除任务
+            function deleteTask(dateStr, index) {
+                const tasks = getTasks(dateStr);
+                tasks.splice(index, 1);
+                saveRecords(); renderView();
+            }
+
+            // 循环切换优先级
+            function cyclePriority(current) {
+                const order = ['green', 'orange', 'red'];
+                let idx = order.indexOf(current);
+                if (idx === -1) return 'green';
+                return order[(idx + 1) % order.length];
+            }
+
+            // 文件选择处理
+            function attachFileToTask(dateStr, index) {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // 只存储文件名和简单信息（无法存储实际路径）
+                        updateTask(dateStr, index, { file: { name: file.name, lastModified: file.lastModified } });
                     }
-                    Object.keys(records).forEach(k => {
-                        if (!Array.isArray(records[k])) records[k] = [];
-                    });
-                }
+                };
+                input.click();
+            }
 
-                function saveRecords() {
-                    try {
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-                    } catch (e) {
-                        alert('保存失败，请稍后重试');
-                    }
-                }
+            // 格式化日期
+            function formatDate(date) {
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
 
-                function getTasks(dateStr) {
-                    if (!records[dateStr]) records[dateStr] = [];
-                    return records[dateStr];
-                }
+            // 获取星期几（中文）
+            function getWeekday(date) {
+                const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+                return weekdays[date.getDay()];
+            }
 
-                function addEmptyTask(dateStr) {
-                    const tasks = getTasks(dateStr);
-                    tasks.push({ text: '', file: '' });
-                    saveRecords();
+            // 获取某月天数
+            function getDaysInMonth(year, month) { return new Date(year, month + 1, 0).getDate(); }
+
+            // 渲染视图
+            function renderView() {
+                const container = document.getElementById('viewContainer');
+                const pickerContainer = document.getElementById('datePickerContainer');
+                if (currentView === 'day') { renderDayPicker(pickerContainer); renderDay(container); }
+                else if (currentView === 'month') { renderMonthPicker(pickerContainer); renderMonth(container); }
+                else if (currentView === 'year') { renderYearPicker(pickerContainer); renderYear(container); }
+            }
+
+            // 日视图日期选择器
+            function renderDayPicker(container) {
+                container.innerHTML = `<input type="date" value="${formatDate(currentDate)}" id="dayPicker">`;
+                document.getElementById('dayPicker').addEventListener('change', (e) => {
+                    currentDate = new Date(e.target.value + 'T12:00:00');
                     renderView();
-                }
+                });
+            }
 
-                function updateTaskText(dateStr, index, newText) {
-                    const tasks = getTasks(dateStr);
-                    if (tasks[index]) tasks[index].text = newText;
-                    saveRecords();
-                }
-
-                function updateTaskFile(dateStr, index, newPath) {
-                    const tasks = getTasks(dateStr);
-                    if (tasks[index]) tasks[index].file = newPath;
-                    saveRecords();
-                }
-
-                function deleteTask(dateStr, index) {
-                    const tasks = getTasks(dateStr);
-                    tasks.splice(index, 1);
-                    saveRecords();
-                    renderView();
-                }
-
-                function formatDate(date) {
-                    const y = date.getFullYear();
-                    const m = String(date.getMonth() + 1).padStart(2, '0');
-                    const d = String(date.getDate()).padStart(2, '0');
-                    return `${y}-${m}-${d}`;
-                }
-
-                function getDaysInMonth(year, month) {
-                    return new Date(year, month + 1, 0).getDate();
-                }
-
-                function renderView() {
-                    const container = document.getElementById('viewContainer');
-                    const pickerContainer = document.getElementById('datePickerContainer');
-                    if (currentView === 'day') {
-                        renderDayPicker(pickerContainer);
-                        renderDay(container);
-                    } else if (currentView === 'month') {
-                        renderMonthPicker(pickerContainer);
-                        renderMonth(container);
-                    } else if (currentView === 'year') {
-                        renderYearPicker(pickerContainer);
-                        renderYear(container);
-                    }
-                }
-
-                function renderDayPicker(container) {
-                    const dateStr = formatDate(currentDate);
-                    container.innerHTML = `
-                        <input type="date" value="${dateStr}" id="dayPicker" style="font-size:18px; padding:8px;">
-                    `;
-                    const picker = document.getElementById('dayPicker');
-                    picker.addEventListener('change', (e) => {
-                        const val = e.target.value;
-                        if (val) {
-                            currentDate = new Date(val + 'T12:00:00');
-                            renderView();
-                        }
-                    });
-                }
-
-                function escapeHtml(unsafe) {
-                    return unsafe.replace(/[&<>"]/g, function(m) {
-                        if (m === '&') return '&amp;';
-                        if (m === '<') return '&lt;';
-                        if (m === '>') return '&gt;';
-                        if (m === '"') return '&quot;';
-                        return m;
-                    });
-                }
-
-                function renderDay(container) {
-                    const dateStr = formatDate(currentDate);
-                    const tasks = getTasks(dateStr);
-                    let tasksHtml = '';
-                    tasks.forEach((task, idx) => {
-                        tasksHtml += `
-                            <div class="task-item" data-index="${idx}">
-                                <input type="text" class="task-text" value="${escapeHtml(task.text)}" placeholder="工作内容" data-field="text">
-                                <div class="file-link">
-                                    <span>🔗</span>
-                                    <input type="text" class="task-file" value="${escapeHtml(task.file || '')}" placeholder="文件路径（可选）" data-field="file">
-                                    ${task.file ? `<a href="${escapeHtml(task.file)}" target="_blank" rel="noopener noreferrer">打开</a>` : ''}
-                                </div>
-                                <button class="delete-task" data-action="delete">🗑️</button>
-                            </div>
-                        `;
-                    });
-
-                    const html = `
-                        <div class="day-view">
-                            <div class="day-header">
-                                <span>📌 ${dateStr}</span>
-                            </div>
-                            <div class="task-list" data-date="${dateStr}">
-                                ${tasksHtml || '<div style="color:#b595a8; padding:20px; text-align:center;">今天还没有任务，点下方添加～</div>'}
-                            </div>
-                            <button class="add-task-btn" data-action="add">➕ 添加任务</button>
+            // 日视图渲染
+            function renderDay(container) {
+                const dateStr = formatDate(currentDate);
+                const tasks = getTasks(dateStr);
+                let html = `<div class="day-view"><div class="day-header">📌 ${dateStr} ${getWeekday(currentDate)}</div><div class="task-list" data-date="${dateStr}">`;
+                tasks.forEach((task, idx) => {
+                    const checked = task.completed ? 'checked' : '';
+                    html += `
+                        <div class="task-item" data-idx="${idx}">
+                            <input type="checkbox" class="priority-check" data-priority="${task.priority}" ${checked} style="accent-color: ${task.priority};">
+                            <input type="text" class="task-text ${task.completed ? 'completed' : ''}" value="${escapeHtml(task.text || '')}" placeholder="工作内容">
+                            <button class="file-icon-btn" data-action="file">📎</button>
+                            ${task.file ? `<span class="file-name">${escapeHtml(task.file.name)}</span>` : ''}
+                            <button class="delete-task" data-action="delete">🗑️</button>
                         </div>
                     `;
-                    container.innerHTML = html;
+                });
+                html += `</div><button class="add-task-btn" data-action="add">➕ 添加任务</button></div>`;
+                container.innerHTML = html;
 
-                    const viewEl = container.firstElementChild;
-                    viewEl.querySelectorAll('.task-text').forEach((input, idx) => {
-                        input.addEventListener('input', (e) => {
-                            updateTaskText(dateStr, idx, e.target.value);
-                        });
+                // 绑定事件
+                const view = container.firstElementChild;
+                view.querySelectorAll('.task-item').forEach((item, idx) => {
+                    const chk = item.querySelector('.priority-check');
+                    const txt = item.querySelector('.task-text');
+                    const fileBtn = item.querySelector('[data-action="file"]');
+                    const delBtn = item.querySelector('[data-action="delete"]');
+
+                    chk.addEventListener('change', (e) => {
+                        const completed = e.target.checked;
+                        updateTask(dateStr, idx, { completed });
                     });
-                    viewEl.querySelectorAll('.task-file').forEach((input, idx) => {
-                        input.addEventListener('input', (e) => {
-                            updateTaskFile(dateStr, idx, e.target.value);
-                            renderView();
-                        });
+                    chk.addEventListener('click', (e) => {
+                        // 循环优先级：点击复选框时（未完成状态下）切换优先级
+                        if (!chk.checked) {
+                            const newPri = cyclePriority(task.priority);
+                            updateTask(dateStr, idx, { priority: newPri });
+                        }
                     });
-                    viewEl.querySelectorAll('.delete-task').forEach((btn, idx) => {
-                        btn.addEventListener('click', () => {
-                            deleteTask(dateStr, idx);
-                        });
-                    });
-                    viewEl.querySelector('[data-action="add"]').addEventListener('click', () => {
-                        addEmptyTask(dateStr);
-                    });
+
+                    txt.addEventListener('input', (e) => updateTask(dateStr, idx, { text: e.target.value }));
+
+                    if (fileBtn) fileBtn.addEventListener('click', () => attachFileToTask(dateStr, idx));
+                    if (delBtn) delBtn.addEventListener('click', () => deleteTask(dateStr, idx));
+                });
+                view.querySelector('[data-action="add"]').addEventListener('click', () => addEmptyTask(dateStr));
+            }
+
+            // 月视图日期选择器
+            function renderMonthPicker(container) {
+                const y = currentDate.getFullYear();
+                const m = currentDate.getMonth();
+                container.innerHTML = `
+                    <select id="monthYear">${generateYearOptions(y)}</select>
+                    <select id="monthMonth">${generateMonthOptions(m)}</select>
+                `;
+                document.getElementById('monthYear').addEventListener('change', (e) => {
+                    const newY = parseInt(e.target.value);
+                    const newM = document.getElementById('monthMonth').value;
+                    currentDate = new Date(newY, newM, 1);
+                    renderView();
+                });
+                document.getElementById('monthMonth').addEventListener('change', (e) => {
+                    const newM = parseInt(e.target.value);
+                    const newY = document.getElementById('monthYear').value;
+                    currentDate = new Date(newY, newM, 1);
+                    renderView();
+                });
+            }
+
+            // 月视图日历网格
+            function renderMonth(container) {
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                const firstDay = new Date(year, month, 1).getDay(); // 0=周日
+                const daysInMonth = getDaysInMonth(year, month);
+                const daysInPrevMonth = getDaysInMonth(year, month - 1);
+
+                let grid = '<div class="month-view"><div class="month-header">' + year + '年' + (month+1) + '月</div>';
+                grid += '<div class="calendar-grid">';
+                const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+                weekdays.forEach(w => grid += `<div class="weekday">${w}</div>`);
+
+                // 填充空白格子（前月）
+                for (let i = 0; i < firstDay; i++) {
+                    grid += '<div class="calendar-cell" style="opacity:0.4"></div>';
                 }
 
-                function renderMonthPicker(container) {
-                    const y = currentDate.getFullYear();
-                    const m = currentDate.getMonth();
-                    container.innerHTML = `
-                        <select id="monthYear">
-                            ${generateYearOptions(y)}
-                        </select>
-                        <select id="monthMonth">
-                            ${generateMonthOptions(m)}
-                        </select>
-                    `;
-                    document.getElementById('monthYear').addEventListener('change', (e) => {
-                        const newY = parseInt(e.target.value);
-                        const newM = document.getElementById('monthMonth').value;
-                        currentDate = new Date(newY, newM, 1);
-                        renderView();
+                // 当月日期
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const date = new Date(year, month, d);
+                    const dateStr = formatDate(date);
+                    const tasks = getTasks(dateStr);
+                    const hasTasks = tasks.length > 0;
+                    let dotsHtml = '';
+                    tasks.forEach(task => {
+                        if (!task.completed) { // 只显示未完成任务？或全部显示，这里显示全部，用颜色区分
+                            dotsHtml += `<span class="task-dot ${task.priority}"></span>`;
+                        }
                     });
-                    document.getElementById('monthMonth').addEventListener('change', (e) => {
-                        const newM = parseInt(e.target.value);
-                        const newY = document.getElementById('monthYear').value;
-                        currentDate = new Date(newY, newM, 1);
-                        renderView();
-                    });
+                    grid += `<div class="calendar-cell" data-date="${dateStr}">
+                        <div class="cell-date">${d}</div>
+                        <div class="task-dots">${dotsHtml}</div>
+                    </div>`;
                 }
 
-                function renderMonth(container) {
-                    const year = currentDate.getFullYear();
-                    const month = currentDate.getMonth();
+                grid += '</div></div>';
+                container.innerHTML = grid;
+
+                // 点击日期跳转到日视图
+                container.querySelectorAll('.calendar-cell[data-date]').forEach(cell => {
+                    cell.addEventListener('click', () => {
+                        const dStr = cell.dataset.date;
+                        currentDate = new Date(dStr + 'T12:00:00');
+                        currentView = 'day';
+                        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                        document.querySelector('[data-view="day"]').classList.add('active');
+                        renderView();
+                    });
+                });
+            }
+
+            // 年视图日期选择器
+            function renderYearPicker(container) {
+                const y = currentDate.getFullYear();
+                container.innerHTML = `<select id="yearPicker">${generateYearOptions(y, 10)}</select>`;
+                document.getElementById('yearPicker').addEventListener('change', (e) => {
+                    currentDate = new Date(parseInt(e.target.value), 0, 1);
+                    renderView();
+                });
+            }
+
+            // 年视图：显示12个月的小日历
+            function renderYear(container) {
+                const year = currentDate.getFullYear();
+                let html = '<div class="year-view">';
+                for (let m = 0; m < 12; m++) {
+                    const month = m;
+                    const monthName = year + '年' + (month+1) + '月';
+                    const firstDay = new Date(year, month, 1).getDay();
                     const daysInMonth = getDaysInMonth(year, month);
-                    let monthHtml = `<div class="month-view"><div class="month-header">${year}年${month+1}月</div><div class="month-grid">`;
 
+                    html += `<div class="year-month-block"><div class="year-month-title">${monthName}</div>`;
+                    html += '<div class="month-mini-grid">';
+                    // 星期标题
+                    ['日','一','二','三','四','五','六'].forEach(w => html += `<div class="mini-weekday">${w}</div>`);
+                    // 前月空白
+                    for (let i = 0; i < firstDay; i++) html += '<div class="mini-cell" style="opacity:0.2"></div>';
+                    // 日期格子
                     for (let d = 1; d <= daysInMonth; d++) {
                         const date = new Date(year, month, d);
                         const dateStr = formatDate(date);
                         const tasks = getTasks(dateStr);
-                        let tasksInner = '';
-                        tasks.forEach((task, idx) => {
-                            tasksInner += `
-                                <div class="task-item" style="margin-bottom:8px;" data-date="${dateStr}" data-idx="${idx}">
-                                    <input type="text" class="task-text" value="${escapeHtml(task.text)}" placeholder="工作内容" data-field="text">
-                                    <div class="file-link">
-                                        <input type="text" class="task-file" value="${escapeHtml(task.file || '')}" placeholder="文件路径" data-field="file">
-                                        ${task.file ? `<a href="${escapeHtml(task.file)}" target="_blank">打开</a>` : ''}
-                                    </div>
-                                    <button class="delete-task" data-action="delete">🗑️</button>
-                                </div>
-                            `;
-                        });
-                        monthHtml += `
-                            <div class="month-day-card">
-                                <div class="day-title">${dateStr}</div>
-                                <div class="task-list" data-date="${dateStr}">
-                                    ${tasksInner || '<div style="color:#b595a8; padding:10px;">无任务</div>'}
-                                </div>
-                                <button class="add-task-btn" style="margin-top:12px;" data-action="add-month" data-date="${dateStr}">➕</button>
-                            </div>
-                        `;
-                    }
-                    monthHtml += '</div></div>';
-                    container.innerHTML = monthHtml;
-
-                    container.querySelectorAll('.task-item').forEach(item => {
-                        const dateStr = item.dataset.date;
-                        const idx = item.dataset.idx;
-                        const textInput = item.querySelector('.task-text');
-                        const fileInput = item.querySelector('.task-file');
-                        const delBtn = item.querySelector('.delete-task');
-                        if (textInput) {
-                            textInput.addEventListener('input', (e) => updateTaskText(dateStr, parseInt(idx), e.target.value));
-                        }
-                        if (fileInput) {
-                            fileInput.addEventListener('input', (e) => {
-                                updateTaskFile(dateStr, parseInt(idx), e.target.value);
-                                renderView();
-                            });
-                        }
-                        if (delBtn) {
-                            delBtn.addEventListener('click', () => deleteTask(dateStr, parseInt(idx)));
-                        }
-                    });
-                    container.querySelectorAll('[data-action="add-month"]').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            const dateStr = e.target.dataset.date;
-                            addEmptyTask(dateStr);
-                        });
-                    });
-                }
-
-                function renderYearPicker(container) {
-                    const y = currentDate.getFullYear();
-                    container.innerHTML = `
-                        <select id="yearPicker">
-                            ${generateYearOptions(y, 10)}
-                        </select>
-                    `;
-                    document.getElementById('yearPicker').addEventListener('change', (e) => {
-                        const newY = parseInt(e.target.value);
-                        currentDate = new Date(newY, 0, 1);
-                        renderView();
-                    });
-                }
-
-                function renderYear(container) {
-                    const year = currentDate.getFullYear();
-                    let yearHtml = '<div class="year-view">';
-                    for (let m = 0; m < 12; m++) {
-                        const month = m;
-                        const daysInMonth = getDaysInMonth(year, month);
-                        yearHtml += `<div class="year-month-block"><div class="year-month-title">${year}年${month+1}月</div>`;
-                        for (let d = 1; d <= daysInMonth; d++) {
-                            const date = new Date(year, month, d);
-                            const dateStr = formatDate(date);
-                            const tasks = getTasks(dateStr);
-                            if (tasks.length > 0) {
-                                yearHtml += `<div style="margin:12px 0 20px 10px;"><strong>${dateStr}</strong>`;
-                                tasks.forEach((task, idx) => {
-                                    yearHtml += `
-                                        <div class="task-item" style="margin:8px 0 8px 20px; padding:10px;" data-date="${dateStr}" data-idx="${idx}">
-                                            <input type="text" class="task-text" value="${escapeHtml(task.text)}" placeholder="工作内容" style="flex:2;">
-                                            <div class="file-link" style="flex:1;">
-                                                <input type="text" class="task-file" value="${escapeHtml(task.file || '')}" placeholder="文件路径" style="width:100%;">
-                                                ${task.file ? `<a href="${escapeHtml(task.file)}" target="_blank">打开</a>` : ''}
-                                            </div>
-                                            <button class="delete-task" data-action="delete">🗑️</button>
-                                        </div>
-                                    `;
-                                });
-                                yearHtml += `</div>`;
+                        let dots = '';
+                        tasks.forEach(task => {
+                            if (!task.completed) {
+                                dots += `<span class="mini-dot ${task.priority}"></span>`;
                             }
-                        }
-                        yearHtml += `</div>`;
-                    }
-                    yearHtml += '</div>';
-                    container.innerHTML = yearHtml;
-
-                    container.querySelectorAll('.task-item').forEach(item => {
-                        const dateStr = item.dataset.date;
-                        const idx = item.dataset.idx;
-                        const textInput = item.querySelector('.task-text');
-                        const fileInput = item.querySelector('.task-file');
-                        const delBtn = item.querySelector('.delete-task');
-                        if (textInput) {
-                            textInput.addEventListener('input', (e) => updateTaskText(dateStr, parseInt(idx), e.target.value));
-                        }
-                        if (fileInput) {
-                            fileInput.addEventListener('input', (e) => {
-                                updateTaskFile(dateStr, parseInt(idx), e.target.value);
-                                renderView();
-                            });
-                        }
-                        if (delBtn) {
-                            delBtn.addEventListener('click', () => deleteTask(dateStr, parseInt(idx)));
-                        }
-                    });
-                }
-
-                function generateYearOptions(selected, range = 5) {
-                    let options = '';
-                    for (let y = selected - range; y <= selected + range; y++) {
-                        options += `<option value="${y}" ${y === selected ? 'selected' : ''}>${y}年</option>`;
-                    }
-                    return options;
-                }
-                function generateMonthOptions(selected) {
-                    let options = '';
-                    for (let m = 0; m < 12; m++) {
-                        options += `<option value="${m}" ${m === selected ? 'selected' : ''}>${m+1}月</option>`;
-                    }
-                    return options;
-                }
-
-                function exportToWord(startDateStr, endDateStr) {
-                    const start = new Date(startDateStr + 'T00:00:00');
-                    const end = new Date(endDateStr + 'T23:59:59');
-                    if (isNaN(start) || isNaN(end) || start > end) {
-                        alert('请选择有效的日期区间');
-                        return;
-                    }
-                    let allDates = [];
-                    for (let key in records) {
-                        if (records.hasOwnProperty(key) && Array.isArray(records[key]) && records[key].length > 0) {
-                            const d = new Date(key + 'T12:00:00');
-                            if (d >= start && d <= end) {
-                                allDates.push(key);
-                            }
-                        }
-                    }
-                    allDates.sort();
-
-                    let contentHtml = `
-                        <html>
-                        <head><meta charset="UTF-8"><title>工作记录 ${startDateStr} 至 ${endDateStr}</title>
-                        <style>body{font-family: 'Segoe UI', Arial; padding:30px;} .date{font-size:20px; font-weight:bold; margin-top:25px;} .task{margin-left:20px; margin-bottom:10px; border-left:3px solid #f4b6c2; padding-left:15px;} .file{color:#777;}</style>
-                        </head>
-                        <body>
-                        <h1>工作记录 (${startDateStr} ~ ${endDateStr})</h1>
-                    `;
-
-                    allDates.forEach(dateStr => {
-                        const tasks = records[dateStr];
-                        if (!tasks || tasks.length === 0) return;
-                        contentHtml += `<div class="date">📅 ${dateStr}</div>`;
-                        tasks.forEach((task, idx) => {
-                            contentHtml += `<div class="task">`;
-                            contentHtml += `<div><strong>任务:</strong> ${escapeHtml(task.text) || '(空)'}</div>`;
-                            if (task.file) contentHtml += `<div class="file">🔗 文件: ${escapeHtml(task.file)}</div>`;
-                            contentHtml += `</div>`;
                         });
-                    });
-
-                    contentHtml += `</body></html>`;
-
-                    const blob = new Blob([contentHtml], { type: 'application/msword' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `工作记录_${startDateStr}_至_${endDateStr}.doc`;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
+                        html += `<div class="mini-cell" data-date="${dateStr}">
+                            <span class="date-num">${d}</span>
+                            <div class="mini-dots">${dots}</div>
+                        </div>`;
+                    }
+                    html += '</div></div>';
                 }
+                html += '</div>';
+                container.innerHTML = html;
 
-                // 初始化
-                loadRecords();
-
-                // 视图切换
-                document.querySelectorAll('.view-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
+                container.querySelectorAll('.mini-cell[data-date]').forEach(cell => {
+                    cell.addEventListener('click', () => {
+                        const dStr = cell.dataset.date;
+                        currentDate = new Date(dStr + 'T12:00:00');
+                        currentView = 'day';
                         document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-                        e.target.classList.add('active');
-                        currentView = e.target.dataset.view;
+                        document.querySelector('[data-view="day"]').classList.add('active');
                         renderView();
                     });
                 });
+            }
 
-                // 导出弹窗
-                const exportBtn = document.getElementById('exportBtn');
-                const exportDialog = document.getElementById('exportDialog');
-                const cancelExport = document.getElementById('cancelExport');
-                const confirmExport = document.getElementById('confirmExport');
-                const exportStart = document.getElementById('exportStart');
-                const exportEnd = document.getElementById('exportEnd');
-
-                exportBtn.addEventListener('click', () => {
-                    const today = new Date();
-                    const sevenDaysAgo = new Date(today);
-                    sevenDaysAgo.setDate(today.getDate() - 7);
-                    exportStart.value = formatDate(sevenDaysAgo);
-                    exportEnd.value = formatDate(today);
-                    exportDialog.classList.remove('hidden');
+            // 辅助函数
+            function escapeHtml(unsafe) {
+                return unsafe.replace(/[&<>"]/g, m => {
+                    if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; if (m === '"') return '&quot;'; return m;
                 });
+            }
+            function generateYearOptions(selected, range = 5) {
+                let opts = '';
+                for (let y = selected - range; y <= selected + range; y++)
+                    opts += `<option value="${y}" ${y===selected?'selected':''}>${y}年</option>`;
+                return opts;
+            }
+            function generateMonthOptions(selected) {
+                let opts = '';
+                for (let m = 0; m < 12; m++)
+                    opts += `<option value="${m}" ${m===selected?'selected':''}>${m+1}月</option>`;
+                return opts;
+            }
 
-                cancelExport.addEventListener('click', () => {
-                    exportDialog.classList.add('hidden');
-                });
-
-                confirmExport.addEventListener('click', () => {
-                    const start = exportStart.value;
-                    const end = exportEnd.value;
-                    if (start && end) {
-                        exportToWord(start, end);
+            // 导出Word
+            function exportToWord(startStr, endStr) {
+                const start = new Date(startStr + 'T00:00');
+                const end = new Date(endStr + 'T23:59');
+                if (isNaN(start) || isNaN(end) || start > end) { alert('无效日期区间'); return; }
+                let dates = [];
+                for (let key in records) {
+                    if (records[key].length) {
+                        const d = new Date(key + 'T12:00');
+                        if (d >= start && d <= end) dates.push(key);
                     }
-                    exportDialog.classList.add('hidden');
+                }
+                dates.sort();
+                let content = `<html><head><meta charset="UTF-8"><title>工作记录</title><style>body{font-family:Segoe UI; padding:20px;} .date{font-size:18px;font-weight:bold;margin-top:20px;} .task{margin-left:20px;border-left:3px solid #f4b6c2;padding-left:12px;margin-bottom:8px;} .completed{text-decoration:line-through;color:#888;}</style></head><body><h1>工作记录 ${startStr} ~ ${endStr}</h1>`;
+                dates.forEach(ds => {
+                    const tasks = records[ds];
+                    if (!tasks.length) return;
+                    content += `<div class="date">📅 ${ds}</div>`;
+                    tasks.forEach(t => {
+                        content += `<div class="task ${t.completed ? 'completed' : ''}">`;
+                        content += `<div>${escapeHtml(t.text) || '(空)'} [${t.priority}]</div>`;
+                        if (t.file) content += `<div>📎 ${escapeHtml(t.file.name)}</div>`;
+                        content += `</div>`;
+                    });
                 });
+                content += '</body></html>';
+                const blob = new Blob([content], { type: 'application/msword' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `工作记录_${startStr}_${endStr}.doc`;
+                link.click();
+            }
 
-                exportDialog.addEventListener('click', (e) => {
-                    if (e.target === exportDialog) exportDialog.classList.add('hidden');
+            // 初始化
+            loadRecords();
+
+            // 视图切换
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentView = e.target.dataset.view;
+                    renderView();
                 });
+            });
 
-                renderView();
-            })();
+            // 导出弹窗
+            const exportBtn = document.getElementById('exportBtn');
+            const exportDialog = document.getElementById('exportDialog');
+            const cancelExport = document.getElementById('cancelExport');
+            const confirmExport = document.getElementById('confirmExport');
+            const exportStart = document.getElementById('exportStart');
+            const exportEnd = document.getElementById('exportEnd');
+
+            exportBtn.addEventListener('click', () => {
+                const today = new Date();
+                const sevenAgo = new Date(today); sevenAgo.setDate(today.getDate()-7);
+                exportStart.value = formatDate(sevenAgo);
+                exportEnd.value = formatDate(today);
+                exportDialog.classList.remove('hidden');
+            });
+            cancelExport.addEventListener('click', () => exportDialog.classList.add('hidden'));
+            confirmExport.addEventListener('click', () => {
+                if (exportStart.value && exportEnd.value) exportToWord(exportStart.value, exportEnd.value);
+                exportDialog.classList.add('hidden');
+            });
+            exportDialog.addEventListener('click', (e) => { if (e.target === exportDialog) exportDialog.classList.add('hidden'); });
+
+            renderView();
         })();
     </script>
 </body>
