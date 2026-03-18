@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>我的工作本本 · 日历网格版</title>
+    <title>一日一记 · 我的工作本本</title>
+    <!-- 引入 xlsx 用于解析 Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -61,6 +63,16 @@
             padding: 24px 20px;
             border: 2px solid #ffeef4;
         }
+        /* 页面标题 */
+        .app-title {
+            font-size: 32px;
+            font-weight: 600;
+            color: #b26288;
+            text-align: center;
+            margin-bottom: 16px;
+            letter-spacing: 4px;
+            text-shadow: 2px 2px 0 #ffd9e8;
+        }
         .toolbar {
             display: flex; flex-wrap: wrap; gap: 10px;
             align-items: center; margin-bottom: 20px;
@@ -79,13 +91,14 @@
         .view-btn.active { background: #ffb6d9; color: white; box-shadow: 0 2px 6px #fba9cd; }
         .date-picker { display: flex; align-items: center; gap: 6px; background: white; padding: 4px 14px; border-radius: 40px; border: 1px solid #ffbed6; }
         .date-picker input, .date-picker select { border: none; background: transparent; font-size: 15px; padding: 6px 2px; outline: none; }
-        .btn-export {
+        .btn-export, .btn-import {
             background: #d9c2ff; border: 2px solid #c7a8ff; color: #4e3b5c;
             padding: 8px 20px; border-radius: 40px; font-size: 16px;
             font-weight: 500; box-shadow: 0 4px 0 #ab8fc9;
-            cursor: pointer; margin-left: auto;
+            cursor: pointer;
         }
-        .btn-export:active { transform: translateY(3px); box-shadow: 0 1px 0 #ab8fc9; }
+        .btn-import { background: #ffe0b5; border-color: #fdc98d; box-shadow: 0 4px 0 #dbaa6b; margin-left: 8px; }
+        .btn-export:active, .btn-import:active { transform: translateY(3px); box-shadow: 0 1px 0 currentColor; }
 
         .view-container { margin-top: 16px; }
 
@@ -94,8 +107,8 @@
         .day-header { font-size: 24px; font-weight: 500; color: #a6527a; margin-bottom: 20px; }
         .task-list { display: flex; flex-direction: column; gap: 12px; }
         .task-item {
-            display: flex; align-items: center; gap: 12px;
-            background: white; padding: 12px 18px;
+            display: flex; align-items: center; gap: 8px;
+            background: white; padding: 10px 16px;
             border-radius: 50px; border: 1.5px solid #ffc9e0;
             flex-wrap: wrap;
         }
@@ -105,7 +118,6 @@
             border: 2px solid #ccc; cursor: pointer;
             display: inline-flex; align-items: center; justify-content: center;
             background-color: white; transition: 0.1s;
-            position: relative;
         }
         .priority-check:checked { background-color: currentColor; border-color: currentColor; }
         .priority-check:checked::after { content: "✓"; color: white; font-size: 16px; }
@@ -114,22 +126,29 @@
         .priority-check[data-priority="green"] { color: #4caf50; border-color: #4caf50; }
 
         .task-text {
-            flex: 2 1 250px; border: none; background: #fff2f8;
+            flex: 2 1 200px; border: none; background: #fff2f8;
             padding: 8px 16px; border-radius: 40px; font-size: 15px;
             border: 1px solid #ffb8d4; outline: none;
         }
         .task-text.completed { text-decoration: line-through; color: #a88b9a; }
 
+        /* 备注图标 */
+        .memo-btn {
+            background: #fff0d0; border: none; border-radius: 50%;
+            width: 36px; height: 36px; font-size: 18px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border: 1px solid #f7c9a4; color: #b2574b;
+        }
         .file-icon-btn {
             background: #e8f0fe; border: none; border-radius: 50%;
-            width: 40px; height: 40px; font-size: 20px;
+            width: 36px; height: 36px; font-size: 18px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; border: 1px solid #b8cef0; color: #4e6b9e;
         }
-        .file-name { font-size: 14px; color: #7a5d6e; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .file-name { font-size: 13px; color: #7a5d6e; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .delete-task {
-            background: none; border: none; font-size: 24px;
-            cursor: pointer; color: #cc7fa0; width: 40px; height: 40px;
+            background: none; border: none; font-size: 22px;
+            cursor: pointer; color: #cc7fa0; width: 36px; height: 36px;
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
         }
         .delete-task:hover { background: #ffc2d9; color: white; }
@@ -148,28 +167,55 @@
         }
         .weekday {
             text-align: center; font-weight: 600; color: #a6527a;
-            padding: 8px 0; font-size: 15px;
+            padding: 8px 0; font-size: 14px;
         }
         .calendar-cell {
-            background: white; border-radius: 18px; padding: 8px 4px;
-            min-height: 70px; border: 1px solid #ffc9e0;
+            background: white; border-radius: 18px; padding: 6px 3px;
+            min-height: 85px; border: 1px solid #ffc9e0;
             display: flex; flex-direction: column; align-items: center;
             cursor: pointer; transition: 0.1s;
+            font-size: 12px;
         }
         .calendar-cell:hover { background: #fff0fa; transform: scale(1.02); }
-        .cell-date { font-weight: 600; color: #9e6b7e; margin-bottom: 4px; }
+        .cell-date { font-weight: 600; color: #9e6b7e; margin-bottom: 2px; font-size: 14px; }
         .task-dots {
-            display: flex; flex-wrap: wrap; gap: 4px; justify-content: center;
+            display: flex; flex-wrap: wrap; gap: 3px; justify-content: center;
+            margin: 3px 0;
         }
         .task-dot {
-            width: 10px; height: 10px; border-radius: 50%;
+            width: 8px; height: 8px; border-radius: 50%;
         }
         .task-dot.red { background: #f44336; }
         .task-dot.orange { background: #ff9800; }
         .task-dot.green { background: #4caf50; }
-        .task-dot.completed { background: #ccc; } /* 已完成任务显示灰色 */
+        .task-dot.completed { background: #ccc; }
 
-        /* 年视图小日历 */
+        /* 月视图任务文字 */
+        .task-preview {
+            font-size: 10px;
+            line-height: 1.2;
+            color: #5f3f4c;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin: 2px 0;
+            padding: 0 2px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .task-preview span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: calc(100% - 16px);
+        }
+        .has-memo { color: #d46b8c; font-size: 10px; margin-left: 2px; }
+
+        /* 年视图小日历 (保持不变，不显示文字) */
         .year-view { display: flex; flex-direction: column; gap: 24px; }
         .year-month-block {
             background: #fff9fd; border-radius: 40px; padding: 20px;
@@ -185,38 +231,42 @@
             color: #a6527a; padding: 4px 0;
         }
         .mini-cell {
-            background: white; border-radius: 12px; padding: 6px 2px;
+            background: white; border-radius: 12px; padding: 4px 1px;
             border: 1px solid #ffd0e2; display: flex;
             flex-direction: column; align-items: center;
-            cursor: pointer; font-size: 12px;
+            cursor: pointer; font-size: 11px;
         }
         .mini-cell .date-num { font-weight: 600; color: #7a4d63; }
         .mini-dots { display: flex; gap: 2px; justify-content: center; flex-wrap: wrap; }
-        .mini-dot {
-            width: 6px; height: 6px; border-radius: 50%;
-        }
+        .mini-dot { width: 5px; height: 5px; border-radius: 50%; }
         .mini-dot.red { background: #f44336; }
         .mini-dot.orange { background: #ff9800; }
         .mini-dot.green { background: #4caf50; }
         .mini-dot.completed { background: #ccc; }
 
         /* 导出弹窗 */
-        .export-dialog {
+        .export-dialog, .import-dialog {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.3); display: flex;
             justify-content: center; align-items: center;
             z-index: 100;
         }
-        .export-card {
+        .export-card, .import-card {
             background: #fff5fb; border-radius: 60px; padding: 32px;
             max-width: 400px; width: 90%; border: 3px solid #ffbad2;
         }
-        .export-card h3 { font-size: 24px; color: #a6527a; margin-bottom: 20px; }
-        .export-card input {
+        .export-card h3, .import-card h3 { font-size: 24px; color: #a6527a; margin-bottom: 20px; }
+        .export-card input, .import-card input[type="file"] {
             width: 100%; padding: 12px 20px; font-size: 16px;
             border: 2px solid #ffbed6; border-radius: 50px; margin-bottom: 16px;
         }
-        .export-actions { display: flex; gap: 12px; justify-content: flex-end; }
+        .import-card .format-hint {
+            font-size: 13px; color: #a15c7c; margin: 10px 0; text-align: left;
+            background: #fff0f5; padding: 10px; border-radius: 20px;
+        }
+        .export-actions {
+            display: flex; gap: 12px; justify-content: flex-end;
+        }
         .export-actions button {
             border: none; padding: 10px 22px; border-radius: 40px;
             font-size: 18px; font-weight: 500; cursor: pointer;
@@ -229,7 +279,7 @@
 <body>
     <!-- 登录界面 -->
     <div id="loginPage" class="login-container">
-        <h1>🔐 我的小本本</h1>
+        <h1>🔐 一日一记</h1>
         <p>请输入用户名和密码</p>
         <div class="input-group"><label>用户名</label><input type="text" id="username" value="fionacici"></div>
         <div class="input-group"><label>密码</label><input type="password" id="password" value="123456cyl"></div>
@@ -240,6 +290,7 @@
     <!-- 主应用 -->
     <div id="mainApp">
         <div class="container">
+            <div class="app-title">📔 一日一记</div>
             <div class="toolbar">
                 <div class="view-switch">
                     <button class="view-btn active" data-view="day">📅 日</button>
@@ -248,6 +299,7 @@
                 </div>
                 <div class="date-picker" id="datePickerContainer"></div>
                 <button class="btn-export" id="exportBtn">📤 导出Word</button>
+                <button class="btn-import" id="importBtn">📂 导入任务</button>
             </div>
             <div class="view-container" id="viewContainer"></div>
         </div>
@@ -261,6 +313,25 @@
             <div class="export-actions">
                 <button class="btn-cancel" id="cancelExport">取消</button>
                 <button class="btn-confirm" id="confirmExport">导出</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入弹窗 -->
+    <div id="importDialog" class="import-dialog hidden">
+        <div class="import-card">
+            <h3>📂 上传文件导入任务</h3>
+            <input type="file" id="importFile" accept=".csv,.xlsx,.xls">
+            <div class="format-hint">
+                <strong>格式说明：</strong><br>
+                支持 .csv 或 .xlsx 文件，需包含以下列（可调整顺序，但列名需一致）：<br>
+                <code>日期,任务,备注,优先级,完成状态</code><br>
+                日期格式：YYYY-MM-DD，优先级：green/orange/red，完成状态：true/false 或 1/0。<br>
+                如不填写，默认优先级 green，完成状态 false。
+            </div>
+            <div class="export-actions">
+                <button class="btn-cancel" id="cancelImport">取消</button>
+                <button class="btn-confirm" id="confirmImport">导入</button>
             </div>
         </div>
     </div>
@@ -291,8 +362,8 @@
             passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); doLogin(); } });
 
             // ---------- 工作记录核心 ----------
-            const STORAGE_KEY = 'mom_work_grid_v2';
-            let records = {}; // { "2025-03-21": [{ text: "写周报", completed: false, priority: "green", file: null }, ...] }
+            const STORAGE_KEY = 'mom_work_grid_v3';
+            let records = {}; // { "2025-03-21": [{ text: "写周报", completed: false, priority: "green", file: null, memo: "" }, ...] }
             let currentView = 'day';
             let currentDate = new Date();
 
@@ -312,7 +383,7 @@
             // 添加空任务（默认优先级绿色）
             function addEmptyTask(dateStr) {
                 const tasks = getTasks(dateStr);
-                tasks.push({ text: '', completed: false, priority: 'green', file: null });
+                tasks.push({ text: '', completed: false, priority: 'green', file: null, memo: '' });
                 saveRecords(); renderView();
             }
 
@@ -354,11 +425,23 @@
                 input.onchange = (e) => {
                     const file = e.target.files[0];
                     if (file) {
-                        // 存储文件名和基本信息
                         updateTask(dateStr, index, { file: { name: file.name, lastModified: file.lastModified } });
                     }
                 };
                 input.click();
+            }
+
+            // 备注处理
+            function editMemo(dateStr, index) {
+                const tasks = getTasks(dateStr);
+                const task = tasks[index];
+                if (!task) return;
+                const newMemo = prompt('请输入备注（工作要求等）：', task.memo || '');
+                if (newMemo !== null) {
+                    updateTaskField(dateStr, index, 'memo', newMemo);
+                    // 备注更新后，可局部更新月视图，但为了简单，重绘当前视图（因为月视图需要显示备注标记）
+                    renderView();
+                }
             }
 
             // 格式化日期
@@ -403,45 +486,40 @@
                 let html = `<div class="day-view"><div class="day-header">📌 ${dateStr} ${getWeekday(currentDate)}</div><div class="task-list" data-date="${dateStr}">`;
                 tasks.forEach((task, idx) => {
                     const checked = task.completed ? 'checked' : '';
-                    // 注意：复选框的 data-priority 用于样式，但实际优先级存储在任务对象中
                     html += `
                         <div class="task-item" data-idx="${idx}">
                             <input type="checkbox" class="priority-check" data-priority="${task.priority}" ${checked} style="accent-color: ${task.priority};">
                             <input type="text" class="task-text ${task.completed ? 'completed' : ''}" value="${escapeHtml(task.text || '')}" placeholder="工作内容" data-idx="${idx}">
-                            <button class="file-icon-btn" data-action="file" data-idx="${idx}">📎</button>
+                            <button class="memo-btn" data-action="memo" data-idx="${idx}" title="备注">📝</button>
+                            <button class="file-icon-btn" data-action="file" data-idx="${idx}" title="添加附件">📎</button>
                             ${task.file ? `<span class="file-name">${escapeHtml(task.file.name)}</span>` : ''}
-                            <button class="delete-task" data-action="delete" data-idx="${idx}">🗑️</button>
+                            <button class="delete-task" data-action="delete" data-idx="${idx}" title="删除">🗑️</button>
                         </div>
                     `;
                 });
                 html += `</div><button class="add-task-btn" data-action="add">➕ 添加任务</button></div>`;
                 container.innerHTML = html;
 
-                // 为每个任务绑定事件（使用事件委托或直接绑定）
                 const view = container.firstElementChild;
 
-                // 文本输入：实时更新，但不重新渲染
+                // 文本输入
                 view.querySelectorAll('.task-text').forEach(input => {
                     const idx = input.dataset.idx;
                     input.addEventListener('input', (e) => {
                         updateTaskField(dateStr, parseInt(idx), 'text', e.target.value);
                     });
-                    // 完成状态样式由复选框控制，但文本删除线可以通过类同步，我们通过渲染时已经根据completed设置，但输入时不需要改
                 });
 
                 // 复选框：左键切换完成状态，右键切换优先级
                 view.querySelectorAll('.priority-check').forEach(chk => {
                     const idx = chk.closest('.task-item').dataset.idx;
-                    // 左键点击：切换完成状态
                     chk.addEventListener('change', (e) => {
                         const completed = e.target.checked;
                         updateTaskField(dateStr, parseInt(idx), 'completed', completed);
-                        // 同时更新文本样式（通过类）
                         const textInput = e.target.closest('.task-item').querySelector('.task-text');
                         if (completed) textInput.classList.add('completed');
                         else textInput.classList.remove('completed');
                     });
-                    // 右键点击：切换优先级（阻止默认右键菜单）
                     chk.addEventListener('contextmenu', (e) => {
                         e.preventDefault();
                         const tasks = getTasks(dateStr);
@@ -449,11 +527,16 @@
                         if (task) {
                             const newPri = cyclePriority(task.priority);
                             updateTaskField(dateStr, parseInt(idx), 'priority', newPri);
-                            // 更新复选框颜色
                             e.target.dataset.priority = newPri;
                             e.target.style.color = newPri === 'red' ? '#f44336' : (newPri === 'orange' ? '#ff9800' : '#4caf50');
                         }
                     });
+                });
+
+                // 备注按钮
+                view.querySelectorAll('[data-action="memo"]').forEach(btn => {
+                    const idx = btn.dataset.idx;
+                    btn.addEventListener('click', () => editMemo(dateStr, parseInt(idx)));
                 });
 
                 // 文件按钮
@@ -498,7 +581,7 @@
             function renderMonth(container) {
                 const year = currentDate.getFullYear();
                 const month = currentDate.getMonth();
-                const firstDay = new Date(year, month, 1).getDay(); // 0=周日
+                const firstDay = new Date(year, month, 1).getDay();
                 const daysInMonth = getDaysInMonth(year, month);
 
                 let grid = '<div class="month-view"><div class="month-header">' + year + '年' + (month+1) + '月</div>';
@@ -506,32 +589,35 @@
                 const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
                 weekdays.forEach(w => grid += `<div class="weekday">${w}</div>`);
 
-                // 填充空白格子（前月）
                 for (let i = 0; i < firstDay; i++) {
                     grid += '<div class="calendar-cell" style="opacity:0.4"></div>';
                 }
 
-                // 当月日期
                 for (let d = 1; d <= daysInMonth; d++) {
                     const date = new Date(year, month, d);
                     const dateStr = formatDate(date);
                     const tasks = getTasks(dateStr);
                     let dotsHtml = '';
+                    let previewsHtml = '';
                     tasks.forEach(task => {
-                        // 显示所有任务，已完成显示灰色
                         const priorityClass = task.completed ? 'completed' : task.priority;
                         dotsHtml += `<span class="task-dot ${priorityClass}"></span>`;
+                        // 显示任务前10个字
+                        const shortText = (task.text || '').substring(0, 10) + ((task.text || '').length > 10 ? '…' : '');
+                        if (shortText) {
+                            previewsHtml += `<div class="task-preview"><span>${escapeHtml(shortText)}</span>${task.memo ? '<span class="has-memo">📌</span>' : ''}</div>`;
+                        }
                     });
                     grid += `<div class="calendar-cell" data-date="${dateStr}">
                         <div class="cell-date">${d}</div>
                         <div class="task-dots">${dotsHtml}</div>
+                        ${previewsHtml}
                     </div>`;
                 }
 
                 grid += '</div></div>';
                 container.innerHTML = grid;
 
-                // 点击日期跳转到日视图
                 container.querySelectorAll('.calendar-cell[data-date]').forEach(cell => {
                     cell.addEventListener('click', () => {
                         const dStr = cell.dataset.date;
@@ -554,7 +640,7 @@
                 });
             }
 
-            // 年视图：显示12个月的小日历
+            // 年视图小日历（不显示任务文字）
             function renderYear(container) {
                 const year = currentDate.getFullYear();
                 let html = '<div class="year-view">';
@@ -566,11 +652,8 @@
 
                     html += `<div class="year-month-block"><div class="year-month-title">${monthName}</div>`;
                     html += '<div class="month-mini-grid">';
-                    // 星期标题
                     ['日','一','二','三','四','五','六'].forEach(w => html += `<div class="mini-weekday">${w}</div>`);
-                    // 前月空白
                     for (let i = 0; i < firstDay; i++) html += '<div class="mini-cell" style="opacity:0.2"></div>';
-                    // 日期格子
                     for (let d = 1; d <= daysInMonth; d++) {
                         const date = new Date(year, month, d);
                         const dateStr = formatDate(date);
@@ -634,7 +717,7 @@
                     }
                 }
                 dates.sort();
-                let content = `<html><head><meta charset="UTF-8"><title>工作记录</title><style>body{font-family:Segoe UI; padding:20px;} .date{font-size:18px;font-weight:bold;margin-top:20px;} .task{margin-left:20px;border-left:3px solid #f4b6c2;padding-left:12px;margin-bottom:8px;} .completed{text-decoration:line-through;color:#888;}</style></head><body><h1>工作记录 ${startStr} ~ ${endStr}</h1>`;
+                let content = `<html><head><meta charset="UTF-8"><title>工作记录</title><style>body{font-family:Segoe UI; padding:20px;} .date{font-size:18px;font-weight:bold;margin-top:20px;} .task{margin-left:20px;border-left:3px solid #f4b6c2;padding-left:12px;margin-bottom:8px;} .completed{text-decoration:line-through;color:#888;} .memo{color:#d46b8c;font-size:14px;}</style></head><body><h1>工作记录 ${startStr} ~ ${endStr}</h1>`;
                 dates.forEach(ds => {
                     const tasks = records[ds];
                     if (!tasks.length) return;
@@ -642,6 +725,7 @@
                     tasks.forEach(t => {
                         content += `<div class="task ${t.completed ? 'completed' : ''}">`;
                         content += `<div>${escapeHtml(t.text) || '(空)'} [${t.priority}]</div>`;
+                        if (t.memo) content += `<div class="memo">📝 ${escapeHtml(t.memo)}</div>`;
                         if (t.file) content += `<div>📎 ${escapeHtml(t.file.name)}</div>`;
                         content += `</div>`;
                     });
@@ -652,6 +736,84 @@
                 link.href = URL.createObjectURL(blob);
                 link.download = `工作记录_${startStr}_${endStr}.doc`;
                 link.click();
+            }
+
+            // ---------- 导入任务 ----------
+            function importFromFile(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = e.target.result;
+                    const fileName = file.name;
+                    let rows = [];
+                    if (fileName.endsWith('.csv')) {
+                        rows = parseCSV(data);
+                    } else if (fileName.match(/\.xlsx?$/)) {
+                        const workbook = XLSX.read(data, { type: 'binary' });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    } else {
+                        alert('不支持的文件类型，请上传 .csv 或 .xlsx 文件');
+                        return;
+                    }
+
+                    // 解析行，第一行为表头
+                    if (rows.length < 2) { alert('文件无数据'); return; }
+                    const headers = rows[0].map(h => String(h).trim());
+                    // 期望列：日期,任务,备注,优先级,完成状态
+                    const dateIdx = headers.findIndex(h => h.includes('日期'));
+                    const taskIdx = headers.findIndex(h => h.includes('任务'));
+                    const memoIdx = headers.findIndex(h => h.includes('备注'));
+                    const priIdx = headers.findIndex(h => h.includes('优先级'));
+                    const compIdx = headers.findIndex(h => h.includes('完成状态'));
+                    if (dateIdx === -1 || taskIdx === -1) {
+                        alert('缺少必要列：日期、任务');
+                        return;
+                    }
+
+                    let importedCount = 0;
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (!row || row.length === 0) continue;
+                        const dateStr = row[dateIdx] ? String(row[dateIdx]).trim() : '';
+                        if (!dateStr) continue; // 跳过无日期行
+                        // 尝试解析日期 YYYY-MM-DD
+                        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                            console.warn('日期格式无效:', dateStr);
+                            continue;
+                        }
+                        const taskText = row[taskIdx] ? String(row[taskIdx]).trim() : '';
+                        const memo = memoIdx !== -1 && row[memoIdx] ? String(row[memoIdx]).trim() : '';
+                        let priority = 'green';
+                        if (priIdx !== -1 && row[priIdx]) {
+                            const p = String(row[priIdx]).trim().toLowerCase();
+                            if (p.includes('red') || p.includes('红')) priority = 'red';
+                            else if (p.includes('orange') || p.includes('橙')) priority = 'orange';
+                        }
+                        let completed = false;
+                        if (compIdx !== -1 && row[compIdx]) {
+                            const c = String(row[compIdx]).trim().toLowerCase();
+                            if (c === 'true' || c === '1' || c === '是' || c === '完成') completed = true;
+                        }
+
+                        const tasks = getTasks(dateStr);
+                        tasks.push({ text: taskText, completed, priority, file: null, memo });
+                        importedCount++;
+                    }
+                    saveRecords();
+                    renderView();
+                    alert(`成功导入 ${importedCount} 条任务`);
+                };
+                if (file.name.match(/\.xlsx?$/)) {
+                    reader.readAsBinaryString(file);
+                } else {
+                    reader.readAsText(file, 'UTF-8');
+                }
+            }
+
+            // 简单CSV解析（按逗号分割，忽略引号）
+            function parseCSV(text) {
+                const lines = text.split(/\r?\n/);
+                return lines.map(line => line.split(',').map(cell => cell.trim()));
             }
 
             // 初始化
@@ -688,6 +850,26 @@
                 exportDialog.classList.add('hidden');
             });
             exportDialog.addEventListener('click', (e) => { if (e.target === exportDialog) exportDialog.classList.add('hidden'); });
+
+            // 导入弹窗
+            const importBtn = document.getElementById('importBtn');
+            const importDialog = document.getElementById('importDialog');
+            const cancelImport = document.getElementById('cancelImport');
+            const confirmImport = document.getElementById('confirmImport');
+            const importFile = document.getElementById('importFile');
+
+            importBtn.addEventListener('click', () => {
+                importFile.value = ''; // 清空
+                importDialog.classList.remove('hidden');
+            });
+            cancelImport.addEventListener('click', () => importDialog.classList.add('hidden'));
+            confirmImport.addEventListener('click', () => {
+                const file = importFile.files[0];
+                if (!file) { alert('请选择文件'); return; }
+                importFromFile(file);
+                importDialog.classList.add('hidden');
+            });
+            importDialog.addEventListener('click', (e) => { if (e.target === importDialog) importDialog.classList.add('hidden'); });
 
             renderView();
         })();
